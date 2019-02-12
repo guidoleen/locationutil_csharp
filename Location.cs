@@ -9,6 +9,30 @@ namespace LocationUtil
         public double latitude { get; }
         public double longitude { get; }
         public int locid { get; }
+        public int klantid { get; }
+        public int berichtid { get; }
+        public String bertitel { get; }
+        public String bertext { get; }
+
+        public String getBerTitel()
+        {
+            return this.bertitel;
+        }
+
+        public String getBerText()
+        {
+            return this.bertext;
+        }
+
+        public int getKlantId()
+        {
+            return this.klantid;
+        }
+
+        public int getBerichtId()
+        {
+            return this.berichtid;
+        }
 
         public double getLatitude()
         {
@@ -39,6 +63,15 @@ namespace LocationUtil
             this.locid = _locid;
             this.latitude = _lat;
             this.longitude = _long;
+        }
+
+        public Location(int _locid, double _lat, double _long, String _bertitle, String _bertext)
+        {
+            this.locid = _locid;
+            this.latitude = _lat;
+            this.longitude = _long;
+            this.bertext = _bertext;
+            this.bertitel = _bertitle;
         }
 
         public String toString()

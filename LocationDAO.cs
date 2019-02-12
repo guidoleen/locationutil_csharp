@@ -93,8 +93,13 @@ namespace LocationUtil
 
         public void show()
         {
-            String strSql = "select * from location";
-            
+            String strSql = "select locid, longitude, latitude, title, bericht from klantlocation, klant, location, bericht" +
+            "where id_klant = klantid and" +
+            "id_location = locid and" +
+            "id_bericht = berid";
+
+            strSql = "select locid, latitude, longitude from location";
+
             this.setTheConnection();
             this.comm = new SQLiteCommand(strSql, this.conn);
 
@@ -108,10 +113,13 @@ namespace LocationUtil
                     Console.WriteLine(drdr["longitude"] + " Longitude");
                     Console.WriteLine(drdr["latitude"] + " latitude");
 
+                    // Location(int _locid, double _lat, double _long, String _bertitle, String _bertext)
                     addLocation(new Location((int)drdr.GetInt32(0),
                                     (double)drdr.GetDouble(1),
                                     (double)drdr.GetDouble(2)
                                     ));
+                                    // (String)drdr.GetString(3),
+                                    // (String)drdr.GetString(4)
                 }
             }
             catch(SQLiteException ex)
