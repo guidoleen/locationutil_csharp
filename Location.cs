@@ -65,13 +65,15 @@ namespace LocationUtil
             this.longitude = _long;
         }
 
-        public Location(int _locid, double _lat, double _long, String _bertitle, String _bertext)
+        public Location(int _locid, double _lat, double _long, String _bertitle, String _bertext, int _berichtid, int _klantid)
         {
             this.locid = _locid;
             this.latitude = _lat;
             this.longitude = _long;
             this.bertext = _bertext;
             this.bertitel = _bertitle;
+            this.berichtid = _berichtid;
+            this.klantid = _klantid;
         }
 
         public String toString()

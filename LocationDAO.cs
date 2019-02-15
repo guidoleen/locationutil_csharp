@@ -15,9 +15,9 @@ namespace LocationUtil
         private System.Data.SQLite.SQLiteCommand comm;
         private ArrayList locations = new ArrayList();
 
-        public ArrayList getLocations()
+        public ArrayList getLocations(int _id)
         {
-            this.show();
+            this.show(_id);
             return this.locations;
         }
 
@@ -44,15 +44,32 @@ namespace LocationUtil
         {
             this.setTheConnection();
 
-            this.comm = this.conn.CreateCommand();
-            this.comm.CommandText = "DELETE FROM location WHERE locid = @param1";
-            this.comm.CommandType = CommandType.Text;
-            this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLocId()));
-
             try
             {
                 this.conn.Open();
-                this.comm.ExecuteNonQuery();
+
+                SQLiteTransaction tr = this.conn.BeginTransaction();
+
+                this.comm = this.conn.CreateCommand();
+                this.comm.Transaction = tr;
+
+                    this.comm.CommandText = "DELETE FROM location WHERE locid = @param1";
+                    this.comm.CommandType = CommandType.Text;
+                    this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLocId()));
+                    this.comm.ExecuteNonQuery();
+
+                    this.comm.CommandText = "DELETE FROM klantlocation WHERE klant_id = @param2 and loc_id = @param3";
+                    this.comm.CommandType = CommandType.Text;
+                    this.comm.Parameters.Add(new SQLiteParameter("@param2", _loc.getKlantId()));
+                    this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getLocId()));
+                    this.comm.ExecuteNonQuery();
+
+                    this.comm.CommandText = "DELETE FROM bericht WHERE berid = @param4";
+                    this.comm.CommandType = CommandType.Text;
+                    this.comm.Parameters.Add(new SQLiteParameter("@param4", _loc.getBerichtId()));
+                    this.comm.ExecuteNonQuery();
+
+                tr.Commit();
             }
             catch(SQLiteException ex)
             {
@@ -65,25 +82,51 @@ namespace LocationUtil
         public void save(Location _loc)
         {
             this.setTheConnection();
+
+            this.conn.Open();
+
+            SQLiteTransaction tr = this.conn.BeginTransaction();
+
             this.comm = this.conn.CreateCommand();
-
-            this.comm.CommandText = "INSERT INTO location (longitude, latitude) VALUES(@param1, @param2)";
-            this.comm.CommandType = CommandType.Text;
-
-            this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLongitude()));
-            this.comm.Parameters.Add(new SQLiteParameter("@param2", _loc.getLatitude()));
+            this.comm.Transaction = tr;
 
             try
             {
-                this.conn.Open();
-                this.comm.ExecuteNonQuery();
+                    this.comm.CommandText = "INSERT INTO location (longitude, latitude) VALUES(@param1, @param2)";
+                    this.comm.CommandType = CommandType.Text;
+                    this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLongitude()));
+                    this.comm.Parameters.Add(new SQLiteParameter("@param2", _loc.getLatitude()));
+                    this.comm.ExecuteNonQuery();
+
+                    long lastLocId = this.conn.LastInsertRowId; // (Int32) this.comm.ExecuteScalar(); // string strlastId = @"select last_insert_rowid()";
+
+                    this.comm.CommandText = "INSERT INTO bericht (title, bericht) VALUES (@param3, @param4)";
+                    this.comm.CommandType = CommandType.Text;
+                    this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getBerTitel()));
+                    this.comm.Parameters.Add(new SQLiteParameter("@param4", _loc.getBerText()));
+                    this.comm.ExecuteNonQuery();
+
+                    long lastBerId = this.conn.LastInsertRowId;
+
+                    this.comm.CommandText = "INSERT INTO klantlocation (id_klant, id_location, id_bericht) VALUES (@param5, @param6, @param7)";
+                    this.comm.CommandType = CommandType.Text;
+                    this.comm.Parameters.Add(new SQLiteParameter("@param5", _loc.getKlantId()));
+                    this.comm.Parameters.Add(new SQLiteParameter("@param6", lastLocId));
+                    this.comm.Parameters.Add(new SQLiteParameter("@param7", lastBerId));
+                    this.comm.ExecuteNonQuery();
+
+                tr.Commit();
             }
             catch (SQLiteException ex)
             {
+                tr.Rollback();
                 System.Console.WriteLine(ex.ToString());
                 this.conn.Close();
             }
-            this.conn.Close();
+            finally
+            {
+                this.conn.Close();
+            }
         }
 
         public void addLocation(Location _loc)
@@ -91,14 +134,10 @@ namespace LocationUtil
             locations.Add(_loc);
         }
 
-        public void show()
+        public void show(int _id)
         {
-            String strSql = "select locid, longitude, latitude, title, bericht from klantlocation, klant, location, bericht" +
-            "where id_klant = klantid and" +
-            "id_location = locid and" +
-            "id_bericht = berid";
-
-            strSql = "select locid, latitude, longitude from location";
+            String strSql = "select locid, latitude, longitude, title, bericht, berid, klantid from klantlocation, klant, location, bericht where id_klant = klantid and id_location = locid and id_bericht = berid " +
+                            "and klantid = " + _id.ToString();
 
             this.setTheConnection();
             this.comm = new SQLiteCommand(strSql, this.conn);
@@ -113,13 +152,15 @@ namespace LocationUtil
                     Console.WriteLine(drdr["longitude"] + " Longitude");
                     Console.WriteLine(drdr["latitude"] + " latitude");
 
-                    // Location(int _locid, double _lat, double _long, String _bertitle, String _bertext)
+                    // Location(int _locid, double _lat, double _long, String _bertitle, String _bertext, int _berichtid, int _locid)
                     addLocation(new Location((int)drdr.GetInt32(0),
                                     (double)drdr.GetDouble(1),
-                                    (double)drdr.GetDouble(2)
+                                    (double)drdr.GetDouble(2),
+                                    (String)drdr.GetString(3),
+                                    (String)drdr.GetString(4),
+                                    (int)drdr.GetInt32(5),
+                                    (int)drdr.GetInt32(5)
                                     ));
-                                    // (String)drdr.GetString(3),
-                                    // (String)drdr.GetString(4)
                 }
             }
             catch(SQLiteException ex)
@@ -133,25 +174,41 @@ namespace LocationUtil
         public void update(Location _loc)
         {
             this.setTheConnection();
-            this.comm = this.conn.CreateCommand();
+            this.conn.Open();
 
-            this.comm.CommandText = "UPDATE location SET longitude = @param1, latitude = @param2 WHERE locid = @param3";
-            this.comm.CommandType = CommandType.Text;
-            this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLongitude()));
-            this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLatitude()));
-            this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getLocId()));
+            SQLiteTransaction tr = this.conn.BeginTransaction();
+
+            this.comm = this.conn.CreateCommand();
+            this.comm.Transaction = tr;
 
             try
             {
-                this.conn.Open();
+                this.comm.CommandText = "UPDATE location SET longitude = @param1, latitude = @param2 WHERE locid = @param3";
+                this.comm.CommandType = CommandType.Text;
+                this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLongitude()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLatitude()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getLocId()));
                 this.comm.ExecuteNonQuery();
+
+                this.comm.CommandText = "UPDATE bericht SET title = @param3, bericht = @param4 WHERE berid = @param5";
+                this.comm.CommandType = CommandType.Text;
+                this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getBerTitel()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param4", _loc.getBerText()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param5", _loc.getBerichtId()));
+                this.comm.ExecuteNonQuery();
+
+                tr.Commit();
             }
             catch(SQLiteException ex)
             {
                 Console.Write(ex.ToString());
+                tr.Rollback();
                 this.conn.Close();
             }
-            this.conn.Close();
+            finally
+            {
+                this.conn.Close();
+            }
         }
     }
 }

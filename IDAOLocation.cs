@@ -7,7 +7,7 @@ namespace LocationUtil
         void save(Location _loc);
         void update(Location _loc);
         void delete(Location _loc);
-        void show();
+        void show(int _id);
     }
 }
 
