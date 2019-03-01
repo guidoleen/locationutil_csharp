@@ -186,23 +186,23 @@ namespace LocationUtil
                 this.comm.CommandText = "UPDATE location SET longitude = @param1, latitude = @param2 WHERE locid = @param3";
                 this.comm.CommandType = CommandType.Text;
                 this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLongitude()));
-                this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLatitude()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param2", _loc.getLatitude()));
                 this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getLocId()));
                 this.comm.ExecuteNonQuery();
 
-                this.comm.CommandText = "UPDATE bericht SET title = @param3, bericht = @param4 WHERE berid = @param5";
+                this.comm.CommandText = "UPDATE bericht SET title = @param4, bericht = @param5 WHERE berid = @param6";
                 this.comm.CommandType = CommandType.Text;
-                this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getBerTitel()));
-                this.comm.Parameters.Add(new SQLiteParameter("@param4", _loc.getBerText()));
-                this.comm.Parameters.Add(new SQLiteParameter("@param5", _loc.getBerichtId()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param4", _loc.getBerTitel()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param5", _loc.getBerText()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param6", _loc.getBerichtId()));
                 this.comm.ExecuteNonQuery();
 
                 tr.Commit();
             }
             catch(SQLiteException ex)
             {
-                Console.Write(ex.ToString());
                 tr.Rollback();
+                System.Console.WriteLine(ex.ToString());
                 this.conn.Close();
             }
             finally
