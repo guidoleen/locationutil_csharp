@@ -10,4 +10,3 @@ C:\Users\guido_leen\source\repos\LocationUtil\LocationUtil\obj\Debug\netstandard
 C:\Users\guido_leen\source\repos\LocationUtil\LocationUtil\obj\Debug\netstandard2.0\LocationUtil.csproj.CopyComplete
 C:\Users\guido_leen\source\repos\LocationUtil\LocationUtil\obj\Debug\netstandard2.0\LocationUtil.dll
 C:\Users\guido_leen\source\repos\LocationUtil\LocationUtil\obj\Debug\netstandard2.0\LocationUtil.pdb
-C:\Users\guido_leen\source\repos\LocationUtil\LocationUtil\obj\Debug\netstandard2.0\LocationUtil.csprojAssemblyReference.cache

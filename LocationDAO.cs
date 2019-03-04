@@ -58,7 +58,7 @@ namespace LocationUtil
                     this.comm.Parameters.Add(new SQLiteParameter("@param1", _loc.getLocId()));
                     this.comm.ExecuteNonQuery();
 
-                    this.comm.CommandText = "DELETE FROM klantlocation WHERE klant_id = @param2 and loc_id = @param3";
+                    this.comm.CommandText = "DELETE FROM klantlocation WHERE id_klant = @param2 and id_location = @param3";
                     this.comm.CommandType = CommandType.Text;
                     this.comm.Parameters.Add(new SQLiteParameter("@param2", _loc.getKlantId()));
                     this.comm.Parameters.Add(new SQLiteParameter("@param3", _loc.getLocId()));
