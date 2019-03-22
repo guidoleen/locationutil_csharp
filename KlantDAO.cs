@@ -89,11 +89,11 @@ namespace LocationUtil
         }
 
         // GET THE KLANT login comparing
-        public Boolean isValidKlant(Klant _klant)
+        public int isValidKlant(Klant _klant)
         {
-            String strSql = "SELECT * FROM klant WHERE klantid = @param1" +
-                              " AND email = @param2" +
-                              " AND pwd = @param3";
+            String strSql = "SELECT klantid FROM klant WHERE " + // klantid = @param1
+                              " email = @param1" +
+                              " AND pwd = @param2";
 
             this.setTheConnection();
 
@@ -104,18 +104,25 @@ namespace LocationUtil
                 {
                     cmd.CommandType = CommandType.Text;
 
-                    cmd.Parameters.Add(new SQLiteParameter("@param1", _klant.getKlantId()));
-                    cmd.Parameters.Add(new SQLiteParameter("@param2", _klant.getEmail()));
-                    cmd.Parameters.Add(new SQLiteParameter("@param3", _klant.getPwd()));
+                    // cmd.Parameters.Add(new SQLiteParameter("@param1", _klant.getKlantId()));
+                    cmd.Parameters.Add(new SQLiteParameter("@param1", _klant.getEmail()));
+                    cmd.Parameters.Add(new SQLiteParameter("@param2", _klant.getPwd()));
 
                     using (SQLiteDataReader rdr = cmd.ExecuteReader())
                     {
+                        int returnId = 0;
                         if (rdr.HasRows)
-                            return true;
+                        {
+                            while(rdr.Read())
+                            {
+                                returnId = rdr.GetInt32(0);
+                            }
+                        }
+                        return returnId;
                     }
                 }
             }
-            return false;
+            return 0;
         }
     }
 }
