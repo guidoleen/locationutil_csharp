@@ -76,9 +76,35 @@ namespace LocationUtil
             return klant;
         }
 
-        public void insert(Klant _klant)
+        public String insert(Klant _klant, String _message)
         {
-            throw new NotImplementedException();
+            this.setTheConnection();
+            this.comm = this.conn.CreateCommand();
+
+            String strComm = "insert into klant(naam, email, pwd) values(@param1, @param2, @param3)";
+
+            try
+            {
+                this.conn.Open();
+                this.comm.CommandText = strComm;
+                this.comm.CommandType = CommandType.Text;
+
+                this.comm.Parameters.Add(new SQLiteParameter("@param1", _klant.getNaam()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param2", _klant.getEmail()));
+                this.comm.Parameters.Add(new SQLiteParameter("@param3", _klant.getPwd()));
+
+                this.comm.ExecuteNonQuery();
+            }
+            catch(SQLiteException ee)
+            {
+                Console.Write(ee.ToString());
+                return ee.ToString();
+            }
+            finally
+            {
+                this.conn.Close();
+            }
+            return _message;
         }
 
         
